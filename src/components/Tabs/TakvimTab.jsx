@@ -1,7 +1,6 @@
 "use client";
 import { useState } from 'react';
 
-// Yeni parametre: 'oturumlar' tablosundan gelecek dinamik slot listesi için 'zamanDilimleri' eklendi.
 export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDilimleri = [], onSinavPlanla, onSinavSil }) {
   const [secilenDers, setSecilenDers] = useState('');
   const [secilenTarih, setSecilenTarih] = useState('');
@@ -11,11 +10,15 @@ export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDili
     e.preventDefault();
     if (!secilenDers || !secilenTarih || !secilenOturum) return;
     
-    // Veritabanı ID kurgusuna uygun parametreler gönderiliyor
+    // API tarafındaki tüm parametre isimlendirmelerine tam uyumluluk köprüsü
     onSinavPlanla({ 
       courseId: secilenDers, 
+      CourseID: secilenDers,
       examDate: secilenTarih, 
-      slotId: secilenOturum 
+      ExamDate: secilenTarih,
+      tarih: secilenTarih,
+      slotId: secilenOturum,
+      SlotID: secilenOturum
     });
     
     setSecilenDers('');
@@ -42,7 +45,7 @@ export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDili
             <option value="">-- Ders Seçiniz --</option>
             {dersler.map((d) => (
               <option key={d.CourseID || d.id} value={d.CourseID || d.id}>
-                {d.CourseCode || d.kod} - {d.CourseName || d.ad} ({d.StudentCount || d.kontenjan} Kişi)
+                {d.CourseCode || d.kod} - {d.CourseName || d.ad} ({d.StudentCount || d.kontenjan || d.mevcut} Kişi)
               </option>
             ))}
           </select>
@@ -66,8 +69,8 @@ export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDili
             <option value="">-- Oturum Seçiniz --</option>
             {zamanDilimleri.length > 0 ? (
               zamanDilimleri.map((t) => (
-                <option key={t.SlotID} value={t.SlotID}>
-                  {t.SlotName} ({t.StartTime?.substring(0, 5)} - {t.EndTime?.substring(0, 5)})
+                <option key={t.SlotID || t.id} value={t.SlotID || t.id}>
+                  {t.SlotName || t.ad} ({t.StartTime?.substring(0, 5)} - {t.EndTime?.substring(0, 5)})
                 </option>
               ))
             ) : (
@@ -104,25 +107,15 @@ export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDili
             </div>
           ) : (
             mevcutSinavlar.map((s) => {
-              // Tarih objesini veya string yapısını frontend için temizleme
               const temizTarih = s.ExamDate ? new Date(s.ExamDate).toLocaleDateString('tr-TR') : s.tarih;
-              
-              // Gözetmen verisi API'den dizi ya da virgülle ayrılmış string gelebilir, onu güvenli diziye çeviriyoruz
-              const gozetmenListesi = Array.isArray(s.gozetmenler) 
-                ? s.gozetmenler 
-                : (s.gozetmenler ? s.gozetmenler.split(',') : []);
-
-              // Salon verisi de aynı mantıkla güvenli diziye çevriliyor
-              const salonListesi = Array.isArray(s.salonlar) 
-                ? s.salonlar 
-                : (s.salonlar ? s.salonlar.split(',') : (s.RoomName ? [s.RoomName] : []));
+              const gozetmenListesi = Array.isArray(s.gozetmenler) ? s.gozetmenler : (s.gozetmenler ? s.gozetmenler.split(',') : []);
+              const salonListesi = Array.isArray(s.salonlar) ? s.salonlar : (s.salonlar ? s.salonlar.split(',') : (s.RoomName ? [s.RoomName] : []));
 
               return (
                 <div 
                   key={s.ExamID || s.id} 
                   className="p-4 border border-slate-100 rounded-xl bg-slate-50/40 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 transition hover:border-slate-200"
                 >
-                  {/* Sol Taraf: Ders ve Zaman Bilgileri */}
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-800 tracking-tight">
                       <span className="text-indigo-600 font-mono mr-1.5">{s.CourseCode || s.dersKod}</span> 
@@ -145,7 +138,6 @@ export default function TakvimTab({ dersler = [], mevcutSinavlar = [], zamanDili
                     </div>
                   </div>
                   
-                  {/* Sağ Taraf: Salon Bilgisi ve İptal Butonu */}
                   <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
                     <div className="text-[11px] font-bold text-indigo-700 bg-indigo-50/60 border border-indigo-100/70 px-2.5 py-1 rounded-lg">
                       📍 {salonListesi.length > 0 ? salonListesi.join(" + ") : "Salon Atanıyor..."}

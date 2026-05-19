@@ -1,51 +1,65 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-=======
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
->>>>>>> 406b962f1fc3903d1e2855d51c1ccd8829583f5d
+#  Sınav Takvimi Sistemi (Exam Scheduling System)
 
-## Getting Started
+Bu proje, öğrencilerin ve akademisyenlerin sınav tarihlerini, dersliklerini ve programlarını kolayca takip edebilmeleri için geliştirilmiş web tabanlı bir **Sınav Takvimi Yönetim Sistemi**dir. 
 
-First, run the development server:
+---
 
+##  Proje Özellikleri
+
+*   **Dinamik Takvim Görünümü:** Sınav tarihlerini haftalık veya aylık olarak görebilme.
+*   **Rol Tabanlı Yetkilendirme:** 
+    *   *Yöneticiler/Akademisyenler:* Sınav ekleyebilir, silebilir veya güncelleyebilir.
+    *   *Öğrenciler:* Kendilerine ait sınav takvimini görüntüleyebilir.
+*   **Çakışma Kontrolü:** Aynı saatte aynı sınıfa veya öğretmene birden fazla sınav atanmasını önleyen akıllı kontrol sistemi.
+*   **Gerçek Zamanlı Güncellemeler:** Sınav programındaki değişikliklerin anında yansıması.
+
+---
+
+##  Kullanılan Teknolojiler
+
+Bu proje modern web teknolojileri ve esnek bir veri tabanı mimarisi kullanılarak geliştirilmiştir:
+
+*   **Frontend:** React / Next.js
+*   **Backend & Veri Tabanı:** Firebase Firestore [Veya PostgreSQL / NodeJS - hangisini kullandıysanız değiştirin]
+*   **Tasarım/UI:** Tailwind CSS / Material UI
+*   **Versiyon Kontrolü:** Git & GitHub
+
+---
+
+##  Kurulum ve Çalıştırma
+
+Projeyi yerel bilgisayarınızda çalıştırmak için aşağıdaki adımları takip edebilirsiniz:
+
+### 1. Projeyi Klonlayın
 ```bash
-npm run dev
-<<<<<<< HEAD
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-=======
->>>>>>> 406b962f1fc3903d1e2855d51c1ccd8829583f5d
+git clone [https://github.com/](https://github.com/)[KULLANICI_ADINIZ]/sinav-takvimi-sistemi.git
+cd sinav-takvimi-sistemi
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-<<<<<<< HEAD
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-=======
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
->>>>>>> 406b962f1fc3903d1e2855d51c1ccd8829583f5d
+### 2. Bağımlılıkları Yükleyin
+```Bash
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+### 3. Çevre Değişkenlerini Ayarlayın (.env)
+Kök dizinde .env.local dosyası oluşturun ve gerekli API anahtarlarını ekleyin (Örn: Firebase bağlantı bilgileri):
 
-To learn more about Next.js, take a look at the following resources:
+Kod snippet'i 
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain 
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id 
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-<<<<<<< HEAD
-=======
-if you like our repo give a star ⭐ pls uWu 
->>>>>>> 406b962f1fc3903d1e2855d51c1ccd8829583f5d
+### 4. Projeyi Lokal ortamda Başlatın
+Bash
+npm run dev
+# veya
+yarn dev
+Tarayıcınızda http://localhost:3000 adresine giderek projeyi görüntüleyebilirsiniz.
+
+

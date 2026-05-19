@@ -6,11 +6,10 @@ export async function GET() {
   try {
     const pool = await connectDB();
     
-    // 🔍 SQL İÇİNDE DİREKT FORMATLAMA
-    // CONVERT(varchar(5), Sütun, 108) ifadesi saati doğrudan "08:30" formatında string yapar.
-    // Böylece JavaScript'in bunu garip lokalize etmesini kökten engelleriz.
+    // 🔍 SQL İÇİNDE DISTINCT İLE TEKİLLEŞTİRME VE FORMATLAMA
+    // DISTINCT sayesinde veritabanındaki mükerrer satırlar filtrelenir, sadece benzersiz kayıtlar gelir.
     const queryText = `
-      SELECT 
+      SELECT DISTINCT
         SlotID, 
         SlotName,
         CONVERT(varchar(5), StartTime, 108) AS TemizStart,

@@ -54,8 +54,8 @@ export default function Home() {
       const gozetmenRes = await fetch('/api/gozetmenler');
       if (gozetmenRes.ok) setGozetmenler(await gozetmenRes.json());
 
-      // 4. Planlanan Sınavları Çek (Exams & Assignments)
-      const sinavRes = await fetch('/api/sinavlar');
+      // 4. Planlanan Sınavları Çek (Exams & Assignments) - GÜNCEL V2 ROTASI
+      const sinavRes = await fetch('/api/sinavlar-v2');
       if (sinavRes.ok) setMevcutSinavlar(await sinavRes.json());
 
       // 5. İşlem Günlüğünü Çek (SystemLog)
@@ -169,7 +169,6 @@ export default function Home() {
   const handleMazeretSil = async (personnelId, mazeretMetni) => {
     if (!window.confirm(`Mazeret kaydı kaldırılsın mı?\n(${mazeretMetni})`)) return;
     try {
-      // Mazeret string'inden tarihi parse etme veya doğrudan ID bazlı silme
       const res = await fetch(`/api/gozetmenler/mazeret?personnelId=${personnelId}&text=${encodeURIComponent(mazeretMetni)}`, { 
         method: 'DELETE' 
       });
@@ -200,11 +199,11 @@ export default function Home() {
     }
   };
 
-  // 🗑️ SINAV PLANINI PROGRAMDAN SİLME AKSİYONU
+  // 🗑️ SINAV PLANINI PROGRAMDAN SİLME AKSİYONU - GÜNCEL V2 ROTASI
   const handleSinavSil = async (examId, courseName, dateText) => {
     if (!window.confirm(`🚨 ${courseName} dersinin sınav programı iptal edilsin mi?`)) return;
     try {
-      const res = await fetch(`/api/sinavlar?id=${examId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/sinavlar-v2?id=${examId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Sınav planı silinemedi');
 
       await logEkle("SINAV_SIL", `${courseName} dersinin sınav kaydı (ID: ${examId}) sistemden temizlendi.`);
@@ -217,8 +216,18 @@ export default function Home() {
   };
 
   // 🚀 AKILLI VE GÜVENLİ SINAV PLANLAMA ALGORİTMASI (LumoraAcademyDB Entegrasyonlu)
-  const handleSinavPlanla = async ({ secilenDers, secilenTarih, secilenOturum }) => {
+  const handleSinavPlanla = async (incomingData) => {
     setMesaj({ tip: '', icerik: '' });
+    
+    // TakvimTab bileşeninden gelebilecek alternatif isimlendirmeler için köprü yapılandırması
+    const secilenDers = incomingData.secilenDers || incomingData.courseId || incomingData.CourseID;
+    const secilenTarih = incomingData.secilenTarih || incomingData.examDate || incomingData.ExamDate || incomingData.tarih;
+    const secilenOturum = incomingData.secilenOturum || incomingData.slotId || incomingData.SlotID;
+
+    if (!secilenDers || !secilenTarih || !secilenOturum) {
+      alert("Hata: Planlama parametreleri eksik ulaştı.");
+      return;
+    }
     
     const dersBilgi = dersler.find(d => Number(d.CourseID || d.id) === Number(secilenDers));
     if (!dersBilgi) {
@@ -243,23 +252,38 @@ export default function Home() {
       return;
     }
 
-    // 2. Salon Dağıtım Algoritması (Kapasiteye göre azalan sırada sıralayıp salon atama)
+    // 2. Salon Dağıtım Algoritması (Esnek ve Güvenli Veri Modeli Köprüsü)
     let atananSalonlar = [];
     let kalanOgrenci = dMevcut;
-    const siraliDerslikler = [...derslikler].sort((a, b) => (b.Capacity || b.kapasite) - (a.Capacity || a.kapasite));
+    
+    // Veritabanından gelen derslik listesini güvenli bir şekilde normalize edelim
+    const normalizeEdilmisDerslikler = derslikler.map(salon => ({
+      id: salon.ClassroomID || salon.id || salon.ClassroomId,
+      ad: salon.ClassroomName || salon.ad || salon.ClassroomCode,
+      kapasite: Number(salon.Capacity || salon.kapasite || salon.Kapasite || 0)
+    })).filter(salon => salon.id && salon.kapasite > 0); // Hatalı veya eksik tanımlı sınıfları ele
+
+    // Eğer filtreleme sonrası hiç geçerli sınıf kalmadıysa uyarı ver
+    if (normalizeEdilmisDerslikler.length === 0) {
+      alert(`🚨 Sınav Planlanamadı!\n\nVeritabanından ${derslikler.length} adet sınıf çekildi fakat alan adları uyuşmuyor veya kapasiteler tanımlanmamış.\nLütfen ClassroomID ve Capacity alanlarını kontrol edin.`);
+      return;
+    }
+
+    // Kapasiteye göre azalan sırada sırala (Açgözlü/Greedy yaklaşım)
+    const siraliDerslikler = [...normalizeEdilmisDerslikler].sort((a, b) => b.kapasite - a.kapasite);
     
     for (let salon of siraliDerslikler) {
       if (kalanOgrenci > 0) { 
         atananSalonlar.push({ 
-          id: salon.ClassroomID || salon.id, 
-          ad: salon.ClassroomName || salon.ad 
+          id: salon.id, 
+          ad: salon.ad 
         }); 
-        kalanOgrenci -= (salon.Capacity || salon.kapasite); 
+        kalanOgrenci -= salon.kapasite; 
       }
     }
 
     if (atananSalonlar.length === 0) {
-      alert("🚨 Sınav Planlanamadı! Sistemde sınıf/salon verisi bulunamadı.");
+      alert("🚨 Sınav Planlanamadı! Ders mevcudunu yerleştirecek uygun salon kombinasyonu oluşturulamadı.");
       return;
     }
 
@@ -294,9 +318,9 @@ export default function Home() {
 
     const atananGozetmenIds = uygunGozetmenler.slice(0, atananSalonlar.length).map(g => g.PersonnelID || g.id);
 
-    // 5. API'ye Gönderme İşlemi
+    // 5. API'ye Gönderme İşlemi - GÜNCEL V2 ROTASI
     try {
-      const res = await fetch('/api/sinavlar', {
+      const res = await fetch('/api/sinavlar-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

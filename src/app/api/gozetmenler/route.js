@@ -65,7 +65,7 @@ export async function GET() {
   }
 }
 
-// 2. POST: Yeni gözetmen ekleme
+// 2. POST: Yeni gözetmen ekleme (LOGLAMA ENTEGRELİ)
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -75,18 +75,53 @@ export async function POST(request) {
     const departmentId = body.departmentId || body.bolumId || 1;
 
     const pool = await connectDB();
-    const result = await pool.request()
-      .input('title', sql.NVarChar(30), title)
-      .input('firstName', sql.NVarChar(50), firstName)
-      .input('lastName', sql.NVarChar(50), lastName)
-      .input('departmentId', sql.Int, departmentId)
-      .query(`
-        INSERT INTO Personnel (Title, FirstName, LastName, DepartmentID) 
-        VALUES (@title, @firstName, @lastName, @departmentId);
-        SELECT SCOPE_IDENTITY() AS YeniId;
-      `);
+    
+    // Güvenli kayıt ve loglama için Transaction başlatıyoruz
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
 
-    return NextResponse.json({ success: true, id: result.recordset[0].YeniId });
+    try {
+      // ADIM 1: Personel tablosuna akademisyeni ekle
+      const result = await transaction.request()
+        .input('title', sql.NVarChar(30), title)
+        .input('firstName', sql.NVarChar(50), firstName)
+        .input('lastName', sql.NVarChar(50), lastName)
+        .input('departmentId', sql.Int, departmentId)
+        .query(`
+          INSERT INTO Personnel (Title, FirstName, LastName, DepartmentID) 
+          VALUES (@title, @firstName, @lastName, @departmentId);
+          SELECT SCOPE_IDENTITY() AS YeniId;
+        `);
+
+      const yeniId = result.recordset[0].YeniId;
+      const hocaTamAd = `${title} ${firstName} ${lastName}`.trim();
+
+      // ADIM 2: 📜 BEKLENEN BACKLOG ENTEGRASYONU (SystemLogs tablosuna yazma)
+      const simdi = new Date();
+      const trTarihSaat = simdi.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+      const safeTimestamp = Date.now().toString();
+      const logDetay = `Yeni Akademisyen/Gözetmen: ${hocaTamAd} başarıyla sisteme eklendi ve havuz kapasitesine dahil edildi.`;
+
+      await transaction.request()
+        .input('logType', sql.VarChar(50), 'GOZETMEN_EKLEME')
+        .input('logDetails', sql.NVarChar(500), logDetay)
+        .input('formattedDate', sql.VarChar(50), trTarihSaat)
+        .input('systemTimestamp', sql.VarChar(50), safeTimestamp)
+        .query(`
+          INSERT INTO SystemLogs (LogType, LogDetails, FormattedDate, SystemTimestamp)
+          VALUES (@logType, @logDetails, @formattedDate, @systemTimestamp)
+        `);
+
+      // İki adım da başarılıysa veritabanına kaydet
+      await transaction.commit();
+
+      return NextResponse.json({ success: true, id: yeniId });
+
+    } catch (txError) {
+      await transaction.rollback();
+      throw txError;
+    }
+
   } catch (error) {
     console.error("❌ Gözetmen ekleme hatası:", error);
     return NextResponse.json({ error: "Gözetmen eklenemedi." }, { status: 500 });
@@ -116,7 +151,6 @@ export async function DELETE(request) {
     const hoca = hocaBilgiResult.recordset[0];
     const hocaTamAd = `${hoca.Title || ''} ${hoca.FirstName} ${hoca.LastName}`.trim();
 
-    // Verilerin güvenli ve senkronize yazılması için SQL Transaction başlatıyoruz
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
 
@@ -152,7 +186,6 @@ export async function DELETE(request) {
           VALUES (@logType, @logDetails, @formattedDate, @systemTimestamp)
         `);
 
-      // Tüm adımlar kusursuz çalıştıysa veritabanına işle
       await transaction.commit();
 
       return NextResponse.json({ success: true, message: "Gözetmen başarıyla silindi ve günlüğe kaydedildi." });
