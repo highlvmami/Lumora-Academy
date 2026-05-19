@@ -46,11 +46,13 @@ npm install
 ### 3. Çevre Değişkenlerini Ayarlayın (.env)
 Kök dizinde .env.local dosyası oluşturun ve gerekli API anahtarlarını ekleyin (Örn: Firebase bağlantı bilgileri):
 
-DB_SERVER=127.0.0.1
-DB_DATABASE=LumoraAcademyDB
-DB_USER=sa
-DB_PASSWORD=123456
-
+Kendi verilerinizi girin buraya
+```Bash
+DB_SERVER=127.0.0.1    server adınız buraya
+DB_DATABASE=LumoraAcademyDB  database adı buraya
+DB_USER=sa     database deki user adı
+DB_PASSWORD=123456   database deki user şifresi
+```
 
 
 ### 4. Projeyi Lokal ortamda Başlatın
