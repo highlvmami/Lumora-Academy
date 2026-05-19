@@ -20,7 +20,7 @@ Bu proje, öğrencilerin ve akademisyenlerin sınav tarihlerini, dersliklerini v
 Bu proje modern web teknolojileri ve esnek bir veri tabanı mimarisi kullanılarak geliştirilmiştir:
 
 *   **Frontend:** React / Next.js
-*   **Backend & Veri Tabanı:** Firebase Firestore [Veya PostgreSQL / NodeJS - hangisini kullandıysanız değiştirin]
+*   **Backend & Veri Tabanı:**  Local üzerinden SSMS tabanlı sistem
 *   **Tasarım/UI:** Tailwind CSS / Material UI
 *   **Versiyon Kontrolü:** Git & GitHub
 
@@ -32,8 +32,8 @@ Projeyi yerel bilgisayarınızda çalıştırmak için aşağıdaki adımları t
 
 ### 1. Projeyi Klonlayın
 ```bash
-git clone [https://github.com/](https://github.com/)[KULLANICI_ADINIZ]/sinav-takvimi-sistemi.git
-cd sinav-takvimi-sistemi
+git clone https://github.com/highlvmami/Lumora-Academy
+cd Lumora-Academy
 ```
 
 
