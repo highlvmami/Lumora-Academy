@@ -46,12 +46,10 @@ npm install
 ### 3. Çevre Değişkenlerini Ayarlayın (.env)
 Kök dizinde .env.local dosyası oluşturun ve gerekli API anahtarlarını ekleyin (Örn: Firebase bağlantı bilgileri):
 
-Kod snippet'i 
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key 
-
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain 
-
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id 
+DB_SERVER=127.0.0.1
+DB_DATABASE=LumoraAcademyDB
+DB_USER=sa
+DB_PASSWORD=123456
 
 
 
